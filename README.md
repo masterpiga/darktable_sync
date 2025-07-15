@@ -48,18 +48,27 @@ python3 src/dtsync/main.py
 ### Basic Workflow
 
 1. **Configure**: Set path to `darktable-cli` and other options
-   (e.g., preview size, number of threads) [only necessary on first run]
-2. **Chose reference and working directory**: in the main app window
-3. **Scan**: Click the "Scan" buitton to recursively find XMP files with differences
-5. **Decide**: Choose actions for each file (keep reference, keep working, keep both)
-6. **Apply changes**: Execute the selected actions
+   (e.g., preview size, number of threads)
+   [only necessary on first run]
+2. **Chose Archive and Session directories**: in the main app
+   window. These should be two directories with the same
+   sub-directory structure.
+3. **Scan**: Click the "Scan" buitton to recursively find XMP
+   files with differences in the two directories.
+5. **Cull/Decide**: Choose actions for each file (keep archive,
+   keep session, keep both)
+6. **Apply changes**: Click on "Execute planned actions" to
+   enforce the decisions that you have taken.
+   Deselect the "dry-run" toggle if you want the changes to be
+   applied for real.
 
 See `USAGE.md` for more details.
 
 ### Keyboard Navigation
 
-If you want, you can use the application without taking your hands away from the
-keyboard. The default shortcuts are designed for QWERTY layouts. If they don't work
+If you want, during the culling phase you can use the application
+without taking your hands away from the keyboard. The default
+shortcuts are designed for QWERTY layouts. If they don't work
 for you, you can configure them in the preferences:
 
 - **Up/Down**: Navigate up/down through file list
@@ -71,14 +80,6 @@ for you, you can configure them in the preferences:
 - **E/Q**: Zoom in/out on previews
 - **W/A/S/D**: Scroll preview images
 - **R**: Toggle preview orientation
-
-## How It Works
-
-1. **Scan Phase**: Compares XMP files between working and reference directories
-2. **Analysis**: Identifies files with different darktable history or metadata
-3. **Preview Generation**: Creates previews in background using darktable-cli
-4. **Decision Phase**: User reviews diffs and selects actions
-5. **Apply Phase**: Executes file operations based on selected actions
 
 ## Troubleshooting
 
