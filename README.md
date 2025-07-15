@@ -39,6 +39,12 @@ pip install PySide6 lxml
 
 ## Usage
 
+### Running from sources
+
+```bash
+python3 src/dtsync/main.py
+```
+
 ### Basic Workflow
 
 1. **Configure**: Set path to `darktable-cli` and other options
