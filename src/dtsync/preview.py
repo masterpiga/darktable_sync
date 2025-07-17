@@ -9,23 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICU        # Sync scrolling between         # Set up zoom callbacks for pinch-to-zoom
-        self.archive_preview.image_label.set_zoom_callback(self.handle_pinch_zoom)
-        self.session_preview.image_label.set_zoom_callback(self.handle_pinch_zoom)hive and session previews
-        self.archive_preview.image_label.set_other_scroll_area(self.session_preview.scroll_area)
-        self.session_preview.image_label.set_other_scroll_area(self.archive_preview.scroll_area)
-        self.archive_preview.scroll_area.horizontalScrollBar().valueChanged.connect(
-            self.session_preview.scroll_area.horizontalScrollBar().setValue
-        )
-        self.archive_preview.scroll_area.verticalScrollBar().valueChanged.connect(
-            self.session_preview.scroll_area.verticalScrollBar().setValue
-        )
-        self.session_preview.scroll_area.horizontalScrollBar().valueChanged.connect(
-            self.archive_preview.scroll_area.horizontalScrollBar().setValue
-        )
-        self.session_preview.scroll_area.verticalScrollBar().valueChanged.connect(
-            self.archive_preview.scroll_area.verticalScrollBar().setValue
-        )e the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License

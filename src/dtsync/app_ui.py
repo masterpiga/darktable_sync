@@ -50,6 +50,7 @@ from navigation import NavigationLogic
 from preview_cache_manager import PreviewCacheManager
 import ui_components
 import path_utils
+import xmp_diff
 from settings_dialog import SettingsDialog
 
 
@@ -148,7 +149,6 @@ class DarktableSyncApp(QMainWindow):
 
         # Scan button
         self.compare_dirs_btn = QPushButton()
-        icon_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "icon", "compare.png")
         self.compare_dirs_btn.setIcon(QIcon(icons.SCAN_ICON))
         self.compare_dirs_btn.setText("Scan")
         self.compare_dirs_btn.setToolTip("Scan for differing XMP files in the selected directories")
@@ -222,31 +222,7 @@ class DarktableSyncApp(QMainWindow):
         history_diff_layout.setContentsMargins(0, 0, 0, 0)  # Remove margins to use full width
         diff_table_scroll = QScrollArea()
         diff_table_scroll.setWidgetResizable(True)
-        self.diff_table = QTableWidget()
-        self.diff_table.setSelectionMode(QTableWidget.NoSelection)
-        self.diff_table.setColumnCount(6)
-        self.diff_table.setHorizontalHeaderLabels(["Step", "Module", "+", "-", "P", "M"])
-        # Hide row numbers
-        self.diff_table.verticalHeader().setVisible(False)
-        # Enable sorting
-        self.diff_table.setSortingEnabled(True)
-        self.diff_table.sortByColumn(0, Qt.SortOrder.DescendingOrder)
-        # Set size policies
-        self.diff_table.horizontalHeader().setStretchLastSection(False)
-        self.diff_table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        # Set column widths and behaviors
-        self.diff_table.setColumnWidth(0, 50)  # Step
-        self.diff_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Fixed)
-        self.diff_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)  # Module stretches
-        # Fixed width for status columns
-        for col in range(2, 6):
-            self.diff_table.setColumnWidth(col, 30)
-            self.diff_table.horizontalHeader().setSectionResizeMode(col, QHeaderView.Fixed)
-        # Center the checkmark columns
-        for col in range(2, 6):
-            self.diff_table.horizontalHeader().setDefaultAlignment(Qt.AlignCenter)
-        # Make the table read-only
-        self.diff_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.diff_table = xmp_diff.XMPDiff()
         diff_table_scroll.setWidget(self.diff_table)
         history_diff_layout.addWidget(diff_table_scroll, 1)
         # Place history diff group in its own row
@@ -703,7 +679,7 @@ class DarktableSyncApp(QMainWindow):
         if not file_info:
             return
 
-        self.populate_diff_table(file_info["session_data"], file_info["archive_data"])
+        self.diff_table.set_contents(file_info["session_data"], file_info["archive_data"])
 
         session_path = file_info["session_path"]
 
@@ -731,11 +707,6 @@ class DarktableSyncApp(QMainWindow):
             
             # Update paths for compare functionality
             self.preview_manager.update_current_paths(session_path, archive_path)
-
-    def populate_diff_table(self, session_data, archive_data):
-        """Populate the diff table with the changes between session and archive data."""
-        diffs = self.logic.get_xmp_diff_summary(session_data, archive_data)
-        ui_components.populate_diff_table(self.diff_table, diffs)
 
     def apply_changes(self):
         if not self.actions or all(v == 0 for v in self.actions.values()):
@@ -880,7 +851,7 @@ class DarktableSyncApp(QMainWindow):
                 return
                 
             # Update the diff table with the new XMP data
-            self.populate_diff_table(file_info["session_data"], file_info["archive_data"])
+            self.diff_table.set_contents(file_info["session_data"], file_info["archive_data"])
             
             # Only regenerate previews for the files that actually changed
             if session_changed or archive_changed:

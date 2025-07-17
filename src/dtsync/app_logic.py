@@ -105,61 +105,6 @@ class AppLogic:
         with open(self.settings_path, "w") as f:
             json.dump(settings, f, indent=4)
 
-    def clear_preview_cache(self):
-        """Clears the contents of the entire preview cache directory."""
-        cache_dir = os.path.join(Path.home(), ".cache", "dtsync")
-        if os.path.exists(cache_dir):
-            try:
-                shutil.rmtree(cache_dir)
-                print("Preview cache cleared successfully.")
-            except OSError as e:
-                print(f"Error clearing preview cache: {e}")
-        else:
-            print("No cache directory found.")
-
-
-
-    def get_xmp_diff_summary(self, session_data, archive_data):
-        """Return a list of dictionaries containing the changes for each step."""
-        session_history = session_data.get("history", {})
-        archive_history = archive_data.get("history", {})
-        all_keys = set(session_history.keys()) | set(archive_history.keys())
-        result = []
-        
-        for key in sorted(all_keys, key=lambda x: int(x) if x.isdigit() else x):
-            s = session_history.get(key)
-            a = archive_history.get(key)
-            
-            diff = {
-                'step': key,
-                'module': '',
-                'added': False,
-                'removed': False,
-                'params': False,
-                'mask': False
-            }
-            
-            if s and not a:
-                # Added
-                diff['module'] = s.get('operation', str(key))
-                diff['added'] = True
-            elif not s and a:
-                # Removed
-                diff['module'] = a.get('operation', str(key))
-                diff['removed'] = True
-            elif s and a:
-                # Modified
-                diff['module'] = s.get('operation', str(key))
-                if s.get("params") != a.get("params"):
-                    diff['params'] = True
-                if s.get("masks") != a.get("masks"):
-                    diff['mask'] = True
-            
-            if diff['added'] or diff['removed'] or diff['params'] or diff['mask']:
-                result.append(diff)
-        
-        return result
-
     def get_keep_both_commands(self, session_path, archive_path):
         """
         Returns a list of copy commands to:

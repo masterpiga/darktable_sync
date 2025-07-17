@@ -63,33 +63,3 @@ def format_path_for_button(button, path):
     half_chars = max(3, half_chars)
     
     return f"{path[:half_chars]}...{path[-half_chars:]}"
-
-def populate_diff_table(table, diffs):
-    """Populate the diff table with the changes between session and archive data."""
-    # Temporarily disable sorting while populating
-    table.setSortingEnabled(False)
-    table.setRowCount(0)  # Clear existing rows
-    table.setRowCount(len(diffs))
-    
-    for row, diff in enumerate(diffs):
-        # Step number (store as integer for proper sorting)
-        step_item = QTableWidgetItem()
-        step_item.setData(Qt.DisplayRole, int(diff['step']))  # For display and sorting
-        step_item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
-        table.setItem(row, 0, step_item)
-        
-        # Module name
-        module_item = QTableWidgetItem(diff['module'])
-        table.setItem(row, 1, module_item)
-        
-        # Checkmark columns
-        for col, flag in enumerate(['added', 'removed', 'params', 'mask']):
-            check_item = QTableWidgetItem()
-            # Store boolean for sorting, display checkmark
-            check_item.setData(Qt.DisplayRole, '✓' if diff[flag] else '')
-            check_item.setData(Qt.UserRole, diff[flag])  # For sorting
-            check_item.setTextAlignment(Qt.AlignCenter)
-            table.setItem(row, col + 2, check_item)
-    
-    # Re-enable sorting
-    table.setSortingEnabled(True)
