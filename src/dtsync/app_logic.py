@@ -22,6 +22,7 @@ import json
 import shutil
 import time
 from pathlib import Path
+import darktable_detection
 
 
 @dataclasses.dataclass
@@ -38,7 +39,13 @@ class AppLogic:
         # --- Data storage ---
         self.session_dir = ""
         self.archive_dir = ""
-        self.darktable_cli_path = ""
+        
+        # Try to detect darktable-cli path, fallback to empty string if detection fails
+        try:
+            self.darktable_cli_path = darktable_detection.get_default_darktable_cli_path()
+        except Exception:
+            self.darktable_cli_path = ""
+        
         self.diff_files = {}
         self.actions = {}
         self.max_threads = os.cpu_count() or 4
@@ -76,7 +83,21 @@ class AppLogic:
             if os.path.exists(self.settings_path):
                 with open(self.settings_path, "r") as f:
                     settings = json.load(f)
-                    self.darktable_cli_path = settings.get("darktable_cli_path", "")
+                    saved_cli_path = settings.get("darktable_cli_path", "")
+                    
+                    # Use saved path if it exists and is valid, otherwise use detected default
+                    try:
+                        if saved_cli_path and darktable_detection.validate_darktable_cli_path(saved_cli_path):
+                            self.darktable_cli_path = saved_cli_path
+                        else:
+                            # If saved path is invalid, try to detect a new one
+                            detected_path = darktable_detection.get_default_darktable_cli_path()
+                            if detected_path:
+                                self.darktable_cli_path = detected_path
+                    except Exception:
+                        # If detection fails, keep the saved path (even if invalid)
+                        self.darktable_cli_path = saved_cli_path
+                    
                     self.session_dir = settings.get("session_dir", "")
                     self.archive_dir = settings.get("archive_dir", "")
                     self.max_threads = settings.get("max_threads", os.cpu_count() or 4)
@@ -89,6 +110,12 @@ class AppLogic:
                     self.custom_shortcuts.update(saved_shortcuts)
         except (json.JSONDecodeError, FileNotFoundError) as e:
             print(f"Could not load settings: {e}")
+            # If loading fails, ensure we have a default CLI path
+            try:
+                if not self.darktable_cli_path:
+                    self.darktable_cli_path = darktable_detection.get_default_darktable_cli_path()
+            except Exception:
+                pass  # Keep existing path or empty string
 
     def save_settings(self):
         os.makedirs(self.settings_dir, exist_ok=True)
