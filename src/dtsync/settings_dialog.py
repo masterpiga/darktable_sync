@@ -29,9 +29,11 @@ from PySide6.QtWidgets import (
     QKeySequenceEdit,
     QFileDialog,
     QCheckBox,
+    QLabel,
 )
 from PySide6.QtGui import QKeySequence
 from PySide6.QtCore import Qt
+import darktable_detection
 
 
 class SettingsDialog(QDialog):
@@ -63,25 +65,33 @@ class SettingsDialog(QDialog):
 
         # --- darktable-cli Section ---
         cli_group = QGroupBox("darktable-cli")
-        cli_group.setFixedWidth(400)
-        cli_form = QFormLayout(cli_group)
+        cli_layout = QVBoxLayout(cli_group)
         
+        # Path textbox (stretches with container)
         self.darktable_cli_edit = QLineEdit(self.logic.darktable_cli_path)
         self.darktable_cli_edit.textChanged.connect(self.on_cli_path_changed)
+        cli_layout.addWidget(QLabel("darktable-cli Path:"))
+        cli_layout.addWidget(self.darktable_cli_edit)
+        
+        # Buttons layout (side by side underneath the textbox)
+        buttons_layout = QHBoxLayout()
         self.darktable_cli_btn = QPushButton("Browse...")
         self.darktable_cli_btn.setFixedWidth(90)
         self.darktable_cli_btn.clicked.connect(self.select_darktable_cli)
         
-        cli_browse_layout = QHBoxLayout()
-        cli_browse_layout.addWidget(self.darktable_cli_edit)
-        cli_browse_layout.addWidget(self.darktable_cli_btn)
-        cli_form.addRow("darktable-cli Path:", cli_browse_layout)
+        self.auto_detect_btn = QPushButton("Auto-detect")
+        self.auto_detect_btn.setFixedWidth(90)
+        self.auto_detect_btn.clicked.connect(self.auto_detect_darktable_cli)
+        
+        buttons_layout.addWidget(self.darktable_cli_btn)
+        buttons_layout.addWidget(self.auto_detect_btn)
+        buttons_layout.addStretch()  # Push buttons to the left
+        cli_layout.addLayout(buttons_layout)
         
         left_column_layout.addWidget(cli_group)
 
         # --- Performance Section ---
         perf_group = QGroupBox("Performance")
-        perf_group.setFixedWidth(400)
         perf_form = QFormLayout(perf_group)
         
         self.thread_count_spinbox = QSpinBox()
@@ -96,7 +106,6 @@ class SettingsDialog(QDialog):
 
         # --- Previews Section ---
         preview_settings_group = QGroupBox("Previews")
-        preview_settings_group.setFixedWidth(400)
         preview_settings_form = QFormLayout(preview_settings_group)
         
         self.preview_max_dimension_spinbox = QSpinBox()
@@ -112,12 +121,12 @@ class SettingsDialog(QDialog):
         self.enable_opencl_checkbox.stateChanged.connect(self.on_opencl_changed)
         preview_settings_form.addRow("Enable OpenCL:", self.enable_opencl_checkbox)
         
-        clear_cache_current_btn = QPushButton("Clear Cache for Current Size")
+        clear_cache_current_btn = QPushButton("Clear cache for current size")
         clear_cache_current_btn.setFixedWidth(180)
         clear_cache_current_btn.clicked.connect(self.clear_cache_current_size)
         preview_settings_form.addRow("", clear_cache_current_btn)
         
-        clear_cache_all_btn = QPushButton("Clear Cache for All Sizes")
+        clear_cache_all_btn = QPushButton("Clear cache for all sizes")
         clear_cache_all_btn.setFixedWidth(180)
         clear_cache_all_btn.clicked.connect(self.clear_cache_all_sizes)
         preview_settings_form.addRow("", clear_cache_all_btn)
@@ -126,7 +135,6 @@ class SettingsDialog(QDialog):
         
         # --- Backups Section ---
         backup_group = QGroupBox("Backups")
-        backup_group.setFixedWidth(400)
         backup_form = QFormLayout(backup_group)
         
         self.enable_backups_checkbox = QCheckBox()
@@ -235,6 +243,31 @@ class SettingsDialog(QDialog):
         path, _ = QFileDialog.getOpenFileName(self, "Select darktable-cli")
         if path:
             self.darktable_cli_edit.setText(path)
+    
+    def auto_detect_darktable_cli(self):
+        """Auto-detect darktable-cli path and update the text field."""
+        try:
+            detected_path = darktable_detection.get_default_darktable_cli_path()
+            if detected_path:
+                self.darktable_cli_edit.setText(detected_path)
+            else:
+                # Show a message if no path was detected
+                from PySide6.QtWidgets import QMessageBox
+                QMessageBox.information(
+                    self,
+                    "Auto-detect",
+                    "Could not automatically detect darktable-cli path.\n"
+                    "Please use the Browse button to select it manually."
+                )
+        except Exception as e:
+            # Show error message if detection fails
+            from PySide6.QtWidgets import QMessageBox
+            QMessageBox.warning(
+                self,
+                "Auto-detect Error",
+                f"An error occurred while trying to detect darktable-cli:\n{str(e)}\n\n"
+                "Please use the Browse button to select it manually."
+            )
 
     def on_opencl_changed(self, state):
         """Handle OpenCL setting changes."""
