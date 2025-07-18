@@ -172,7 +172,7 @@ class ComparisonSlider(QWidget):
 
         padding = 4
 
-        def drawLabel(painter: QPainter, x: int, y: int, text: str, color: str):
+        def drawLabel(x: int, y: int, text: str, color: str):
             """Draw a label with background color and padding."""
             painter.setPen(QPen(QColor(255, 255, 255)))
             
@@ -191,69 +191,39 @@ class ComparisonSlider(QWidget):
             # Draw text
             painter.drawText(x + padding, y + text_height, text)
 
-        
+        def drawDividerLine(x1: int, y1: int, x2: int, y2: int):
+            painter.setClipRect(self.image_widget.rect())
+            painter.setPen(QPen(QColor(255, 255, 255), 2))
+            painter.drawLine(x1, y1, x2, y2)
+
+        def drawPixmap(pixmap, left, top, width, height):
+            rect = QRect(left, top, width, height)
+            painter.setClipRect(rect)
+            # Center the image
+            x_offset = (self.image_widget.width() - pixmap.width()) // 2
+            y_offset = (self.image_widget.height() - pixmap.height()) // 2
+            painter.drawPixmap(x_offset, y_offset, pixmap)
+
         if self.vertical_divider:
             # Vertical divider (left/right split)
             divider_pos = int(self.image_widget.width() * self.divider_position)
-            
-            # Draw the left image (archive) on the left side
             if self.left_pixmap:
-                left_rect = QRect(0, 0, divider_pos, self.image_widget.height())
-                painter.setClipRect(left_rect)
-                
-                # Center the image
-                x_offset = (self.image_widget.width() - self.left_pixmap.width()) // 2
-                y_offset = (self.image_widget.height() - self.left_pixmap.height()) // 2
-                painter.drawPixmap(x_offset, y_offset, self.left_pixmap)
-            
-            # Draw the right image (session) on the right side
+                drawPixmap(self.left_pixmap, 0, 0, divider_pos, self.image_widget.height())
             if self.right_pixmap:
-                right_rect = QRect(divider_pos, 0, self.image_widget.width() - divider_pos, self.image_widget.height())
-                painter.setClipRect(right_rect)
-                
-                # Center the image
-                x_offset = (self.image_widget.width() - self.right_pixmap.width()) // 2
-                y_offset = (self.image_widget.height() - self.right_pixmap.height()) // 2
-                painter.drawPixmap(x_offset, y_offset, self.right_pixmap)
-            
-            # Draw the divider line
-            painter.setClipRect(self.image_widget.rect())
-            painter.setPen(QPen(QColor(255, 255, 255), 2))
-            painter.drawLine(divider_pos, 0, divider_pos, self.image_widget.height())
-            
-            drawLabel(painter, 0, 0, self.left_label, self.left_label_color)
-            drawLabel(painter, divider_pos + 1, 0, self.right_label, self.right_label_color)
+                drawPixmap(self.right_pixmap, divider_pos, 0, self.image_widget.width() - divider_pos, self.image_widget.height())
+            drawDividerLine(divider_pos, 0, divider_pos, self.image_widget.height())
+            drawLabel(0, 0, self.left_label, self.left_label_color)
+            drawLabel(divider_pos + 1, 0, self.right_label, self.right_label_color)
         else:
             # Horizontal divider (top/bottom split)
             divider_pos = int(self.image_widget.height() * self.divider_position)
-            
-            # Draw the top image (archive) on the top side
             if self.left_pixmap:
-                top_rect = QRect(0, 0, self.image_widget.width(), divider_pos)
-                painter.setClipRect(top_rect)
-                
-                # Center the image
-                x_offset = (self.image_widget.width() - self.left_pixmap.width()) // 2
-                y_offset = (self.image_widget.height() - self.left_pixmap.height()) // 2
-                painter.drawPixmap(x_offset, y_offset, self.left_pixmap)
-            
-            # Draw the bottom image (session) on the bottom side
+                drawPixmap(self.left_pixmap, 0, 0, self.image_widget.width(), divider_pos)
             if self.right_pixmap:
-                bottom_rect = QRect(0, divider_pos, self.image_widget.width(), self.image_widget.height() - divider_pos)
-                painter.setClipRect(bottom_rect)
-                
-                # Center the image
-                x_offset = (self.image_widget.width() - self.right_pixmap.width()) // 2
-                y_offset = (self.image_widget.height() - self.right_pixmap.height()) // 2
-                painter.drawPixmap(x_offset, y_offset, self.right_pixmap)
-            
-            # Draw the divider line
-            painter.setClipRect(self.image_widget.rect())
-            painter.setPen(QPen(QColor(255, 255, 255), 2))
-            painter.drawLine(0, divider_pos, self.image_widget.width(), divider_pos)
-            
-            drawLabel(painter, 0, 0, self.left_label, self.left_label_color)
-            drawLabel(painter, 0, divider_pos + 1, self.right_label, self.right_label_color)
+                drawPixmap(self.right_pixmap, 0, divider_pos, self.image_widget.width(), self.image_widget.height() - divider_pos)
+            drawDividerLine(0, divider_pos, self.image_widget.width(), divider_pos)
+            drawLabel(0, 0, self.left_label, self.left_label_color)
+            drawLabel(0, divider_pos + 1, self.right_label, self.right_label_color)
 
     def mousePressEvent(self, event):
         """Handle mouse press for dragging the divider or panning."""
