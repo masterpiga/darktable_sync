@@ -33,7 +33,6 @@ class CompareInDarktableManager(QObject):
     """Manages comparison of XMP files in darktable."""
     
     # Signal emitted when previews need to be refreshed
-    # Args: archive_path (if changed), session_path (if changed), both_changed (bool)
     refresh_previews_signal = Signal(str, str, bool, bool)  # archive_path, session_path, ref_changed, work_changed
     
     def __init__(self, preview_manager):
