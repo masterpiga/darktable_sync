@@ -169,6 +169,28 @@ class ComparisonSlider(QWidget):
         if not self.left_pixmap and not self.right_pixmap:
             painter.drawText(self.image_widget.rect(), Qt.AlignmentFlag.AlignCenter, "No images loaded")
             return
+
+        padding = 4
+
+        def drawLabel(painter: QPainter, x: int, y: int, text: str, color: str):
+            """Draw a label with background color and padding."""
+            painter.setPen(QPen(QColor(255, 255, 255)))
+            
+            # Set bold font for labels
+            bold_font = painter.font()
+            bold_font.setBold(True)
+            painter.setFont(bold_font)
+
+            text_width = painter.fontMetrics().horizontalAdvance(text)
+            text_height = painter.fontMetrics().height()
+            # Draw background rectangle
+            painter.fillRect(x, y, 
+                            text_width + 2 * padding,
+                            text_height + 2 * padding, 
+                            QColor(color))
+            # Draw text
+            painter.drawText(x + padding, y + text_height, text)
+
         
         if self.vertical_divider:
             # Vertical divider (left/right split)
@@ -199,37 +221,8 @@ class ComparisonSlider(QWidget):
             painter.setPen(QPen(QColor(255, 255, 255), 2))
             painter.drawLine(divider_pos, 0, divider_pos, self.image_widget.height())
             
-            # Draw labels
-            painter.setPen(QPen(QColor(255, 255, 255)))
-            
-            # Set bold font for labels
-            bold_font = painter.font()
-            bold_font.setBold(True)
-            painter.setFont(bold_font)
-            
-            if divider_pos > 60:
-                # Draw left label with background color and padding at corner (0, 0)
-                text_width = painter.fontMetrics().horizontalAdvance(self.left_label)
-                text_height = painter.fontMetrics().height()
-                padding = 1
-                # Position at very corner like side-by-side mode
-                painter.fillRect(0, 0, 
-                               text_width + 2 * padding,
-                               text_height + 2 * padding, 
-                               QColor(self.left_label_color))
-                painter.drawText(0 + padding, text_height + padding, self.left_label)
-            if self.image_widget.width() - divider_pos > 60:
-                # Draw right label with background color and padding at corner
-                text_width = painter.fontMetrics().horizontalAdvance(self.right_label)
-                text_height = painter.fontMetrics().height()
-                padding = 1
-                # Position at corner of right side
-                painter.fillRect(divider_pos, 0,
-                               text_width + 2 * padding,
-                               text_height + 2 * padding,
-                               QColor(self.right_label_color))
-                painter.drawText(divider_pos + padding, text_height + padding, self.right_label)
-        
+            drawLabel(painter, 0, 0, self.left_label, self.left_label_color)
+            drawLabel(painter, divider_pos + 1, 0, self.right_label, self.right_label_color)
         else:
             # Horizontal divider (top/bottom split)
             divider_pos = int(self.image_widget.height() * self.divider_position)
@@ -259,37 +252,9 @@ class ComparisonSlider(QWidget):
             painter.setPen(QPen(QColor(255, 255, 255), 2))
             painter.drawLine(0, divider_pos, self.image_widget.width(), divider_pos)
             
-            # Draw labels
-            painter.setPen(QPen(QColor(255, 255, 255)))
-            
-            # Set bold font for labels
-            bold_font = painter.font()
-            bold_font.setBold(True)
-            painter.setFont(bold_font)
-            
-            if divider_pos > 30:
-                # Draw top label with background color and padding at corner (0, 0)
-                text_width = painter.fontMetrics().horizontalAdvance(self.left_label)
-                text_height = painter.fontMetrics().height()
-                padding = 1
-                # Position at very corner like side-by-side mode
-                painter.fillRect(0, 0, 
-                               text_width + 2 * padding,
-                               text_height + 2 * padding, 
-                               QColor(self.left_label_color))
-                painter.drawText(0 + padding, text_height + padding, self.left_label)
-            if self.image_widget.height() - divider_pos > 30:
-                # Draw bottom label with background color and padding at corner
-                text_width = painter.fontMetrics().horizontalAdvance(self.right_label)
-                text_height = painter.fontMetrics().height()
-                padding = 1
-                # Position at corner of bottom side
-                painter.fillRect(0, divider_pos,
-                               text_width + 2 * padding,
-                               text_height + 2 * padding,
-                               QColor(self.right_label_color))
-                painter.drawText(0 + padding, divider_pos + text_height + padding, self.right_label)
-    
+            drawLabel(painter, 0, 0, self.left_label, self.left_label_color)
+            drawLabel(painter, 0, divider_pos + 1, self.right_label, self.right_label_color)
+
     def mousePressEvent(self, event):
         """Handle mouse press for dragging the divider or panning."""
         if event.button() == Qt.MouseButton.LeftButton:
