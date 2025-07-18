@@ -32,9 +32,10 @@ from PySide6.QtWidgets import (
     QGroupBox,
     QPushButton,
     QSlider,
+    QFrame,
 )
-from PySide6.QtCore import Qt, QObject, Signal, QRunnable, QEvent, QThreadPool, QMutex, QMutexLocker
-from PySide6.QtGui import QPixmap, QIcon
+from PySide6.QtCore import Qt, QObject, Signal, QRunnable, QEvent, QThreadPool, QMutex, QMutexLocker, QRect
+from PySide6.QtGui import QPixmap, QIcon, QPainter, QColor, QPen
 
 import icons
 from compare_in_darktable import CompareInDarktableManager
@@ -160,6 +161,357 @@ class PannableLabel(QLabel):
             event.accept()
             return
         super().mouseReleaseEvent(event)
+
+
+class ComparisonSlider(QWidget):
+    """A widget that displays two images with a draggable divider for before/after comparison."""
+    
+    def __init__(self, left_label="Archive copy", right_label="Session copy"):
+        super().__init__()
+        self.left_label = left_label
+        self.right_label = right_label
+        self.left_pixmap = None
+        self.right_pixmap = None
+        self.original_left_pixmap = None
+        self.original_right_pixmap = None
+        self.divider_position = 0.5  # Position of the divider (0.0 to 1.0)
+        self.dragging = False
+        self.zoom_factor = 1.0
+        self.vertical_divider = True  # True = vertical divider (left/right), False = horizontal divider (top/bottom)
+        self.left_label_color = "black"  # Background color for left label
+        self.right_label_color = "black"  # Background color for right label
+        
+        # Pan and zoom functionality
+        self._panning = False
+        self._pan_start_global = None
+        self._zoom_callback = None
+        
+        self.setMinimumSize(400, 300)
+        self.setMouseTracking(True)
+        
+        # Enable touch events for pinch-to-zoom
+        self.setAttribute(Qt.WidgetAttribute.WA_AcceptTouchEvents, True)
+        self.grabGesture(Qt.GestureType.PinchGesture)
+        
+        # Create a child widget for the actual image display
+        self.image_widget = QWidget()
+        self.image_widget.setMinimumSize(400, 300)
+        self.image_widget.setMouseTracking(True)
+        self.image_widget.paintEvent = self.paintEvent
+        self.image_widget.mousePressEvent = self.mousePressEvent
+        self.image_widget.mouseMoveEvent = self.mouseMoveEvent
+        self.image_widget.mouseReleaseEvent = self.mouseReleaseEvent
+        
+        # Create scroll area
+        self.scroll_area = QScrollArea()
+        self.scroll_area.setWidget(self.image_widget)
+        self.scroll_area.setWidgetResizable(False)
+        self.scroll_area.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        # Set up layout
+        layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(self.scroll_area)
+        self.setLayout(layout)
+    
+    def set_left_pixmap(self, pixmap):
+        """Set the left (archive) image."""
+        self.original_left_pixmap = pixmap
+        self.update_scaled_pixmaps()
+    
+    def set_right_pixmap(self, pixmap):
+        """Set the right (session) image."""
+        self.original_right_pixmap = pixmap
+        self.update_scaled_pixmaps()
+    
+    def set_zoom_factor(self, factor):
+        """Set the zoom factor for both images."""
+        self.zoom_factor = factor
+        self.update_scaled_pixmaps()
+    
+    def set_vertical_divider(self, vertical):
+        """Set whether the divider is vertical (True) or horizontal (False)."""
+        self.vertical_divider = vertical
+        self.image_widget.update()
+    
+    def toggle_orientation(self):
+        """Toggle between vertical and horizontal divider."""
+        self.vertical_divider = not self.vertical_divider
+        self.image_widget.update()
+    
+    def set_label_colors(self, left_color, right_color):
+        """Set the background colors for the labels."""
+        self.left_label_color = left_color
+        self.right_label_color = right_color
+        self.image_widget.update()
+    
+    def set_zoom_callback(self, callback):
+        """Set a callback to handle zoom changes from gestures."""
+        self._zoom_callback = callback
+    
+    def event(self, event):
+        """Handle gesture events for pinch-to-zoom."""
+        if event.type() == QEvent.Type.Gesture:
+            return self.gestureEvent(event)
+        return super().event(event)
+    
+    def gestureEvent(self, event):
+        """Handle pinch-to-zoom gestures."""
+        pinch = event.gesture(Qt.GestureType.PinchGesture)
+        if pinch:
+            if self._zoom_callback:
+                scale_factor = pinch.scaleFactor()
+                # Only apply if the gesture is active
+                if pinch.state() == Qt.GestureState.GestureUpdated:
+                    self._zoom_callback(scale_factor)
+            return True
+        return False
+    
+    def update_scaled_pixmaps(self):
+        """Update the scaled pixmaps based on zoom factor."""
+        if self.original_left_pixmap:
+            self.left_pixmap = self.original_left_pixmap.scaled(
+                int(self.original_left_pixmap.width() * self.zoom_factor),
+                int(self.original_left_pixmap.height() * self.zoom_factor),
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation,
+            )
+        
+        if self.original_right_pixmap:
+            self.right_pixmap = self.original_right_pixmap.scaled(
+                int(self.original_right_pixmap.width() * self.zoom_factor),
+                int(self.original_right_pixmap.height() * self.zoom_factor),
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation,
+            )
+        
+        # Update widget size to match the largest image
+        if self.left_pixmap or self.right_pixmap:
+            max_width = max(
+                self.left_pixmap.width() if self.left_pixmap else 0,
+                self.right_pixmap.width() if self.right_pixmap else 0
+            )
+            max_height = max(
+                self.left_pixmap.height() if self.left_pixmap else 0,
+                self.right_pixmap.height() if self.right_pixmap else 0
+            )
+            self.image_widget.resize(max_width, max_height)
+        
+        self.image_widget.update()
+    
+    def paintEvent(self, event):
+        """Paint the comparison slider."""
+        painter = QPainter(self.image_widget)
+        
+        if not self.left_pixmap and not self.right_pixmap:
+            painter.drawText(self.image_widget.rect(), Qt.AlignmentFlag.AlignCenter, "No images loaded")
+            return
+        
+        if self.vertical_divider:
+            # Vertical divider (left/right split)
+            divider_pos = int(self.image_widget.width() * self.divider_position)
+            
+            # Draw the left image (archive) on the left side
+            if self.left_pixmap:
+                left_rect = QRect(0, 0, divider_pos, self.image_widget.height())
+                painter.setClipRect(left_rect)
+                
+                # Center the image
+                x_offset = (self.image_widget.width() - self.left_pixmap.width()) // 2
+                y_offset = (self.image_widget.height() - self.left_pixmap.height()) // 2
+                painter.drawPixmap(x_offset, y_offset, self.left_pixmap)
+            
+            # Draw the right image (session) on the right side
+            if self.right_pixmap:
+                right_rect = QRect(divider_pos, 0, self.image_widget.width() - divider_pos, self.image_widget.height())
+                painter.setClipRect(right_rect)
+                
+                # Center the image
+                x_offset = (self.image_widget.width() - self.right_pixmap.width()) // 2
+                y_offset = (self.image_widget.height() - self.right_pixmap.height()) // 2
+                painter.drawPixmap(x_offset, y_offset, self.right_pixmap)
+            
+            # Draw the divider line
+            painter.setClipRect(self.image_widget.rect())
+            painter.setPen(QPen(QColor(255, 255, 255), 2))
+            painter.drawLine(divider_pos, 0, divider_pos, self.image_widget.height())
+            
+            # Draw labels
+            painter.setPen(QPen(QColor(255, 255, 255)))
+            
+            # Set bold font for labels
+            bold_font = painter.font()
+            bold_font.setBold(True)
+            painter.setFont(bold_font)
+            
+            if divider_pos > 60:
+                # Draw left label with background color and padding at corner (0, 0)
+                text_width = painter.fontMetrics().horizontalAdvance(self.left_label)
+                text_height = painter.fontMetrics().height()
+                padding = 1
+                # Position at very corner like side-by-side mode
+                painter.fillRect(0, 0, 
+                               text_width + 2 * padding,
+                               text_height + 2 * padding, 
+                               QColor(self.left_label_color))
+                painter.drawText(0 + padding, text_height + padding, self.left_label)
+            if self.image_widget.width() - divider_pos > 60:
+                # Draw right label with background color and padding at corner
+                text_width = painter.fontMetrics().horizontalAdvance(self.right_label)
+                text_height = painter.fontMetrics().height()
+                padding = 1
+                # Position at corner of right side
+                painter.fillRect(divider_pos, 0,
+                               text_width + 2 * padding,
+                               text_height + 2 * padding,
+                               QColor(self.right_label_color))
+                painter.drawText(divider_pos + padding, text_height + padding, self.right_label)
+        
+        else:
+            # Horizontal divider (top/bottom split)
+            divider_pos = int(self.image_widget.height() * self.divider_position)
+            
+            # Draw the top image (archive) on the top side
+            if self.left_pixmap:
+                top_rect = QRect(0, 0, self.image_widget.width(), divider_pos)
+                painter.setClipRect(top_rect)
+                
+                # Center the image
+                x_offset = (self.image_widget.width() - self.left_pixmap.width()) // 2
+                y_offset = (self.image_widget.height() - self.left_pixmap.height()) // 2
+                painter.drawPixmap(x_offset, y_offset, self.left_pixmap)
+            
+            # Draw the bottom image (session) on the bottom side
+            if self.right_pixmap:
+                bottom_rect = QRect(0, divider_pos, self.image_widget.width(), self.image_widget.height() - divider_pos)
+                painter.setClipRect(bottom_rect)
+                
+                # Center the image
+                x_offset = (self.image_widget.width() - self.right_pixmap.width()) // 2
+                y_offset = (self.image_widget.height() - self.right_pixmap.height()) // 2
+                painter.drawPixmap(x_offset, y_offset, self.right_pixmap)
+            
+            # Draw the divider line
+            painter.setClipRect(self.image_widget.rect())
+            painter.setPen(QPen(QColor(255, 255, 255), 2))
+            painter.drawLine(0, divider_pos, self.image_widget.width(), divider_pos)
+            
+            # Draw labels
+            painter.setPen(QPen(QColor(255, 255, 255)))
+            
+            # Set bold font for labels
+            bold_font = painter.font()
+            bold_font.setBold(True)
+            painter.setFont(bold_font)
+            
+            if divider_pos > 30:
+                # Draw top label with background color and padding at corner (0, 0)
+                text_width = painter.fontMetrics().horizontalAdvance(self.left_label)
+                text_height = painter.fontMetrics().height()
+                padding = 1
+                # Position at very corner like side-by-side mode
+                painter.fillRect(0, 0, 
+                               text_width + 2 * padding,
+                               text_height + 2 * padding, 
+                               QColor(self.left_label_color))
+                painter.drawText(0 + padding, text_height + padding, self.left_label)
+            if self.image_widget.height() - divider_pos > 30:
+                # Draw bottom label with background color and padding at corner
+                text_width = painter.fontMetrics().horizontalAdvance(self.right_label)
+                text_height = painter.fontMetrics().height()
+                padding = 1
+                # Position at corner of bottom side
+                painter.fillRect(0, divider_pos,
+                               text_width + 2 * padding,
+                               text_height + 2 * padding,
+                               QColor(self.right_label_color))
+                painter.drawText(0 + padding, divider_pos + text_height + padding, self.right_label)
+    
+    def mousePressEvent(self, event):
+        """Handle mouse press for dragging the divider or panning."""
+        if event.button() == Qt.MouseButton.LeftButton:
+            # Check if we're near the divider for divider dragging
+            is_near_divider = False
+            if self.vertical_divider:
+                divider_pos = int(self.image_widget.width() * self.divider_position)
+                is_near_divider = abs(event.position().x() - divider_pos) < 10
+            else:
+                divider_pos = int(self.image_widget.height() * self.divider_position)
+                is_near_divider = abs(event.position().y() - divider_pos) < 10
+            
+            if is_near_divider:
+                # Start divider dragging
+                self.dragging = True
+                self.update_divider_position(event.position().x(), event.position().y())
+            else:
+                # Check if we can pan (there are images and scrollbars)
+                h_bar = self.scroll_area.horizontalScrollBar()
+                v_bar = self.scroll_area.verticalScrollBar()
+                if (self.left_pixmap or self.right_pixmap) and (h_bar.maximum() > 0 or v_bar.maximum() > 0):
+                    self._panning = True
+                    # Use global position for jitter-free panning
+                    self._pan_start_global = (
+                        event.globalPosition()
+                        if hasattr(event, "globalPosition")
+                        else event.globalPos()
+                    )
+                    QApplication.setOverrideCursor(Qt.CursorShape.OpenHandCursor)
+    
+    def mouseMoveEvent(self, event):
+        """Handle mouse move for dragging the divider or panning."""
+        if self.dragging:
+            # Handle divider dragging
+            if self.vertical_divider:
+                self.update_divider_position(event.position().x(), event.position().y())
+            else:
+                self.update_divider_position(event.position().x(), event.position().y())
+        elif self._panning and (event.buttons() & Qt.MouseButton.LeftButton):
+            # Handle panning
+            if QApplication.overrideCursor() and QApplication.overrideCursor().shape() != Qt.CursorShape.ClosedHandCursor:
+                QApplication.changeOverrideCursor(Qt.CursorShape.ClosedHandCursor)
+            # Use global position for delta
+            current_global = (
+                event.globalPosition()
+                if hasattr(event, "globalPosition")
+                else event.globalPos()
+            )
+            delta = current_global - self._pan_start_global
+            h_bar = self.scroll_area.horizontalScrollBar()
+            v_bar = self.scroll_area.verticalScrollBar()
+            h_bar.setValue(h_bar.value() - int(delta.x()))
+            v_bar.setValue(v_bar.value() - int(delta.y()))
+            self._pan_start_global = current_global
+        else:
+            # Update cursor when hovering over the divider
+            if self.vertical_divider:
+                divider_pos = int(self.image_widget.width() * self.divider_position)
+                if abs(event.position().x() - divider_pos) < 10:
+                    self.image_widget.setCursor(Qt.CursorShape.SplitHCursor)
+                else:
+                    self.image_widget.setCursor(Qt.CursorShape.ArrowCursor)
+            else:
+                divider_pos = int(self.image_widget.height() * self.divider_position)
+                if abs(event.position().y() - divider_pos) < 10:
+                    self.image_widget.setCursor(Qt.CursorShape.SplitVCursor)
+                else:
+                    self.image_widget.setCursor(Qt.CursorShape.ArrowCursor)
+    
+    def mouseReleaseEvent(self, event):
+        """Handle mouse release to stop dragging or panning."""
+        if event.button() == Qt.MouseButton.LeftButton:
+            if self.dragging:
+                self.dragging = False
+            elif self._panning:
+                self._panning = False
+                QApplication.restoreOverrideCursor()
+    
+    def update_divider_position(self, x, y):
+        """Update the divider position based on mouse coordinates."""
+        if self.vertical_divider:
+            self.divider_position = max(0.0, min(1.0, x / self.image_widget.width()))
+        else:
+            self.divider_position = max(0.0, min(1.0, y / self.image_widget.height()))
+        self.image_widget.update()
 
 
 class PreviewSignals(QObject):
@@ -381,6 +733,7 @@ class PreviewManager(QWidget):
         super().__init__()
         self.preview_max_dimension = preview_max_dimension
         self.vertical_layout = True
+        self.comparison_mode = False  # False = side-by-side, True = comparison slider
         
         # Cache manager will be set by main app
         self.cache_manager = None
@@ -391,6 +744,9 @@ class PreviewManager(QWidget):
         # Current paths for compare functionality
         self.current_session_path = None
         self.current_archive_path = None
+        
+        # Comparison slider widget
+        self.comparison_slider = None
         
         self.setup_ui()
 
@@ -454,14 +810,24 @@ class PreviewManager(QWidget):
         self.preview_layout_toggle = QPushButton()
         self.preview_layout_toggle.setIcon(QIcon(icons.VERTICAL_LAYOUT_ICON))
         self.preview_layout_toggle.setFixedWidth(32)
-        self.preview_layout_toggle.setToolTip("Switch preview orientation")
+        self.preview_layout_toggle.setToolTip("Switch between vertical and horizontal layout")
         self.preview_layout_toggle.clicked.connect(self.toggle_preview_orientation)
         toolbar_layout.addWidget(self.preview_layout_toggle)
+        
+        # Comparison mode toggle button
+        self.comparison_mode_toggle = QPushButton()
+        self.comparison_mode_toggle.setText("📊")  # Using emoji as icon
+        self.comparison_mode_toggle.setFixedWidth(32)
+        self.comparison_mode_toggle.setToolTip("Toggle comparison slider mode")
+        self.comparison_mode_toggle.clicked.connect(self.toggle_comparison_mode)
+        toolbar_layout.addWidget(self.comparison_mode_toggle)
+        
         preview_group_layout.addLayout(toolbar_layout)
         
         # Previews Splitter (for toggling orientation)
         self.previews_splitter = QSplitter(Qt.Orientation.Vertical)
-         # Archive Preview (top or left) with overlay label always on top
+        
+        # Archive Preview (top or left) with overlay label always on top
         self.archive_preview = ImagePreview("Archive copy")
         self.previews_splitter.addWidget(self.archive_preview)
 
@@ -469,7 +835,17 @@ class PreviewManager(QWidget):
         self.session_preview = ImagePreview("Session copy")
         self.previews_splitter.addWidget(self.session_preview)
         
-        # Sync scrollbars
+        # Create comparison slider widget (initially hidden)
+        self.comparison_slider = ComparisonSlider("Archive copy", "Session copy")
+        
+        # Add both widgets to the preview group layout
+        preview_group_layout.addWidget(self.previews_splitter)
+        preview_group_layout.addWidget(self.comparison_slider)
+        
+        # Initially hide the comparison slider
+        self.comparison_slider.hide()
+        
+        # Sync scrollbars for side-by-side mode
         self.archive_preview.image_label.set_other_scroll_area(self.session_preview.scroll_area)
         self.session_preview.image_label.set_other_scroll_area(self.archive_preview.scroll_area)
         self.archive_preview.scroll_area.horizontalScrollBar().valueChanged.connect(
@@ -486,11 +862,67 @@ class PreviewManager(QWidget):
         )
         
         preview_group_layout.addWidget(self.previews_splitter)
+        preview_group_layout.addWidget(self.comparison_slider)
+        
+        # Initially hide the comparison slider
+        self.comparison_slider.hide()
+        
+        # Sync scrollbars for side-by-side mode
+        self.archive_preview.image_label.set_other_scroll_area(self.session_preview.scroll_area)
+        self.session_preview.image_label.set_other_scroll_area(self.archive_preview.scroll_area)
+        self.archive_preview.scroll_area.horizontalScrollBar().valueChanged.connect(
+            self.session_preview.scroll_area.horizontalScrollBar().setValue
+        )
+        self.archive_preview.scroll_area.verticalScrollBar().valueChanged.connect(
+            self.session_preview.scroll_area.verticalScrollBar().setValue
+        )
+        self.session_preview.scroll_area.horizontalScrollBar().valueChanged.connect(
+            self.archive_preview.scroll_area.horizontalScrollBar().setValue
+        )
+        self.session_preview.scroll_area.verticalScrollBar().valueChanged.connect(
+            self.archive_preview.scroll_area.verticalScrollBar().setValue
+        )
+        
         layout.addWidget(self.preview_group)
         
         # Connect zoom callbacks for pinch-to-zoom
         self.archive_preview.image_label.set_zoom_callback(self.handle_pinch_zoom)
         self.session_preview.image_label.set_zoom_callback(self.handle_pinch_zoom)
+        self.comparison_slider.set_zoom_callback(self.handle_pinch_zoom)
+    
+    def toggle_comparison_mode(self):
+        """Toggle between side-by-side and comparison slider modes."""
+        self.comparison_mode = not self.comparison_mode
+        
+        if self.comparison_mode:
+            # Switch to comparison slider mode
+            self.previews_splitter.hide()
+            self.comparison_slider.show()
+            # Keep orientation toggle enabled for comparison slider
+            self.comparison_mode_toggle.setToolTip("Switch to side-by-side mode")
+            
+            # Transfer current images to comparison slider
+            if hasattr(self.archive_preview.image_label, 'original_pixmap'):
+                self.comparison_slider.set_left_pixmap(self.archive_preview.image_label.original_pixmap)
+            if hasattr(self.session_preview.image_label, 'original_pixmap'):
+                self.comparison_slider.set_right_pixmap(self.session_preview.image_label.original_pixmap)
+            
+            # Apply current zoom
+            zoom_factor = self.zoom_slider.value() / 100.0
+            self.comparison_slider.set_zoom_factor(zoom_factor)
+            
+            # Set comparison slider orientation to match current orientation
+            self.comparison_slider.set_vertical_divider(not self.vertical_layout)
+            
+        else:
+            # Switch to side-by-side mode
+            self.comparison_slider.hide()
+            self.previews_splitter.show()
+            self.comparison_mode_toggle.setToolTip("Switch to comparison slider mode")
+        
+        # Notify parent if callback is set
+        if hasattr(self, '_focus_callback') and self._focus_callback:
+            self._focus_callback()
     
     def on_preview_ready(self, rel_path, image_type, image_path):
         """Handle when a preview is ready."""
@@ -500,25 +932,36 @@ class PreviewManager(QWidget):
             if rel_path != current_rel_path:
                 return  # Update only if the item is still selected
         
+        # Load the pixmap
+        pixmap = QPixmap()
+        if not pixmap.load(image_path):
+            print(f"Failed to load pixmap from: {image_path}")
+            self.on_preview_failed(rel_path, image_type, "Failed to load preview image.")
+            return
+        
+        if pixmap.isNull():
+            print(f"Pixmap is null after loading from: {image_path}")
+            self.on_preview_failed(rel_path, image_type, "Loaded null preview image.")
+            return
+        
+        # Update side-by-side mode
         label = (
             self.session_preview.image_label
             if image_type == "session"
             else self.archive_preview.image_label
         )
-        
-        pixmap = QPixmap()
-        if not pixmap.load(image_path):
-            print(f"Failed to load pixmap from: {image_path}")
-            label.setText("Failed to load preview image.")
-            return
-        
-        if pixmap.isNull():
-            print(f"Pixmap is null after loading from: {image_path}")
-            label.setText("Loaded null preview image.")
-            return
-        
         label.original_pixmap = pixmap
         self.scale_preview(label)
+        
+        # Update comparison slider mode
+        if image_type == "session":
+            self.comparison_slider.set_right_pixmap(pixmap)
+        else:
+            self.comparison_slider.set_left_pixmap(pixmap)
+        
+        # Apply current zoom to comparison slider
+        zoom_factor = self.zoom_slider.value() / 100.0
+        self.comparison_slider.set_zoom_factor(zoom_factor)
     
     def on_preview_failed(self, rel_path, image_type, error_message):
         """Handle when preview generation fails."""
@@ -527,12 +970,16 @@ class PreviewManager(QWidget):
             if rel_path != current_rel_path:
                 return
         
+        # Update side-by-side mode
         label = (
             self.session_preview.image_label
             if image_type == "session"
             else self.archive_preview.image_label
         )
         label.setText(error_message)
+        
+        # Note: For comparison slider mode, we'll just not update the failed image
+        # The slider will show whatever was previously loaded or nothing
     
     def scale_preview(self, label):
         """Scale a preview label according to the current zoom factor."""
@@ -551,8 +998,13 @@ class PreviewManager(QWidget):
     
     def update_preview_zoom(self, value):
         """Update the zoom level for both preview images."""
+        # Update side-by-side mode
         self.scale_preview(self.archive_preview.image_label)
         self.scale_preview(self.session_preview.image_label)
+        
+        # Update comparison slider mode
+        zoom_factor = value / 100.0
+        self.comparison_slider.set_zoom_factor(zoom_factor)
     
     def handle_pinch_zoom(self, scale_factor):
         """Handle pinch-to-zoom gestures."""
@@ -565,24 +1017,36 @@ class PreviewManager(QWidget):
     def toggle_preview_orientation(self):
         """Switch between vertical and horizontal preview layout."""
         self.vertical_layout = not self.vertical_layout
-        session_layout = self.session_preview.preview_layout
-        session_scroll = self.session_preview.image_label.scroll_area
         
-        # Remove all widgets
-        for i in reversed(range(session_layout.count())):
-            item = session_layout.itemAt(i)
-            widget = item.widget()
-            if widget:
-                widget.setParent(None)
-        
-        if self.vertical_layout:
-            self.previews_splitter.setOrientation(Qt.Orientation.Vertical)
-            self.preview_layout_toggle.setIcon(QIcon(icons.VERTICAL_LAYOUT_ICON))
-            session_layout.addWidget(session_scroll)
+        if self.comparison_mode:
+            # In comparison slider mode, toggle the divider orientation
+            self.comparison_slider.set_vertical_divider(not self.vertical_layout)
+            
+            # Update the button icon to match the orientation
+            if self.vertical_layout:
+                self.preview_layout_toggle.setIcon(QIcon(icons.VERTICAL_LAYOUT_ICON))
+            else:
+                self.preview_layout_toggle.setIcon(QIcon(icons.HORIZONTAL_LAYOUT_ICON))
         else:
-            self.previews_splitter.setOrientation(Qt.Orientation.Horizontal)
-            self.preview_layout_toggle.setIcon(QIcon(icons.HORIZONTAL_LAYOUT_ICON))
-            session_layout.addWidget(session_scroll)
+            # In side-by-side mode, toggle the splitter orientation
+            session_layout = self.session_preview.preview_layout
+            session_scroll = self.session_preview.image_label.scroll_area
+            
+            # Remove all widgets
+            for i in reversed(range(session_layout.count())):
+                item = session_layout.itemAt(i)
+                widget = item.widget()
+                if widget:
+                    widget.setParent(None)
+            
+            if self.vertical_layout:
+                self.previews_splitter.setOrientation(Qt.Orientation.Vertical)
+                self.preview_layout_toggle.setIcon(QIcon(icons.VERTICAL_LAYOUT_ICON))
+                session_layout.addWidget(session_scroll)
+            else:
+                self.previews_splitter.setOrientation(Qt.Orientation.Horizontal)
+                self.preview_layout_toggle.setIcon(QIcon(icons.HORIZONTAL_LAYOUT_ICON))
+                session_layout.addWidget(session_scroll)
         
         # Notify parent if callback is set
         if hasattr(self, '_focus_callback') and self._focus_callback:
@@ -608,44 +1072,68 @@ class PreviewManager(QWidget):
     
     def scroll_preview_up(self):
         """Scroll preview images up."""
-        if hasattr(self.archive_preview, 'scroll_area'):
-            scroll_bar = self.archive_preview.scroll_area.verticalScrollBar()
+        if self.comparison_mode:
+            scroll_bar = self.comparison_slider.scroll_area.verticalScrollBar()
             current_value = scroll_bar.value()
             new_value = max(current_value - 50, scroll_bar.minimum())
             scroll_bar.setValue(new_value)
+        else:
+            if hasattr(self.archive_preview, 'scroll_area'):
+                scroll_bar = self.archive_preview.scroll_area.verticalScrollBar()
+                current_value = scroll_bar.value()
+                new_value = max(current_value - 50, scroll_bar.minimum())
+                scroll_bar.setValue(new_value)
         
         if hasattr(self, '_focus_callback') and self._focus_callback:
             self._focus_callback()
     
     def scroll_preview_down(self):
         """Scroll preview images down."""
-        if hasattr(self.archive_preview, 'scroll_area'):
-            scroll_bar = self.archive_preview.scroll_area.verticalScrollBar()
+        if self.comparison_mode:
+            scroll_bar = self.comparison_slider.scroll_area.verticalScrollBar()
             current_value = scroll_bar.value()
             new_value = min(current_value + 50, scroll_bar.maximum())
             scroll_bar.setValue(new_value)
+        else:
+            if hasattr(self.archive_preview, 'scroll_area'):
+                scroll_bar = self.archive_preview.scroll_area.verticalScrollBar()
+                current_value = scroll_bar.value()
+                new_value = min(current_value + 50, scroll_bar.maximum())
+                scroll_bar.setValue(new_value)
         
         if hasattr(self, '_focus_callback') and self._focus_callback:
             self._focus_callback()
     
     def scroll_preview_left(self):
         """Scroll preview images left."""
-        if hasattr(self.archive_preview, 'scroll_area'):
-            scroll_bar = self.archive_preview.scroll_area.horizontalScrollBar()
+        if self.comparison_mode:
+            scroll_bar = self.comparison_slider.scroll_area.horizontalScrollBar()
             current_value = scroll_bar.value()
             new_value = max(current_value - 50, scroll_bar.minimum())
             scroll_bar.setValue(new_value)
+        else:
+            if hasattr(self.archive_preview, 'scroll_area'):
+                scroll_bar = self.archive_preview.scroll_area.horizontalScrollBar()
+                current_value = scroll_bar.value()
+                new_value = max(current_value - 50, scroll_bar.minimum())
+                scroll_bar.setValue(new_value)
         
         if hasattr(self, '_focus_callback') and self._focus_callback:
             self._focus_callback()
     
     def scroll_preview_right(self):
         """Scroll preview images right."""
-        if hasattr(self.archive_preview, 'scroll_area'):
-            scroll_bar = self.archive_preview.scroll_area.horizontalScrollBar()
+        if self.comparison_mode:
+            scroll_bar = self.comparison_slider.scroll_area.horizontalScrollBar()
             current_value = scroll_bar.value()
             new_value = min(current_value + 50, scroll_bar.maximum())
             scroll_bar.setValue(new_value)
+        else:
+            if hasattr(self.archive_preview, 'scroll_area'):
+                scroll_bar = self.archive_preview.scroll_area.horizontalScrollBar()
+                current_value = scroll_bar.value()
+                new_value = min(current_value + 50, scroll_bar.maximum())
+                scroll_bar.setValue(new_value)
         
         if hasattr(self, '_focus_callback') and self._focus_callback:
             self._focus_callback()
@@ -661,8 +1149,12 @@ class PreviewManager(QWidget):
         elif action_id == 3:  # Keep both
             ref_color, work_color = "green", "green"
         
+        # Update side-by-side mode
         self.archive_preview.set_style(ref_color)
         self.session_preview.set_style(work_color)
+        
+        # Update comparison slider mode
+        self.comparison_slider.set_label_colors(ref_color, work_color)
     
     def set_enabled(self, enabled: bool):
         """Enable or disable the preview group."""
