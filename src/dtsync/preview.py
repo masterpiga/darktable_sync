@@ -414,6 +414,14 @@ class PreviewManager(QWidget):
     def update_preview_dimension(self, new_dimension):
         """Update preview dimension setting."""
         self.preview_max_dimension = new_dimension
+
+
+    def get_orientation_button_icon(self):
+        pass
+
+    def get_comparison_mode_button_icon(self):
+        pass
+
     
     def setup_ui(self):
         """Initialize the preview UI components."""
