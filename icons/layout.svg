@@ -26,9 +26,9 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
-     inkscape:zoom="0.91846942"
-     inkscape:cx="361.47093"
-     inkscape:cy="546.56147"
+     inkscape:zoom="0.66827701"
+     inkscape:cx="194.53011"
+     inkscape:cy="662.89875"
      inkscape:window-width="1728"
      inkscape:window-height="1027"
      inkscape:window-x="0"
@@ -42,88 +42,58 @@
      inkscape:groupmode="layer"
      id="layer1">
     <g
-       id="g2"
-       transform="matrix(1.9317742,0,0,1.9334516,-74.23489,-106.92724)"
-       style="stroke-width:2.06973698;stroke-dasharray:none">
-      <rect
-         style="fill:#1a1a1a;fill-opacity:0;stroke:#000000;stroke-width:2.06973698;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-         id="rect1"
-         width="33.050545"
-         height="32.902195"
-         x="52.433334"
-         y="82.103836"
-         ry="6.9267807"
-         inkscape:export-filename="vertical_layout.png"
-         inkscape:export-xdpi="96"
-         inkscape:export-ydpi="96" />
-      <path
-         style="fill:#1a1a1a;fill-opacity:0;stroke:#000000;stroke-width:1.03486849;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-         d="M 51.853494,98.554958 H 84.904036"
-         id="path2" />
-      <rect
-         style="fill:#1a1a1a;fill-opacity:0;stroke:#000000;stroke-width:2.06974;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-         id="rect1-6"
-         width="33.02187"
-         height="32.930763"
-         x="135.03514"
-         y="-82.607307"
-         ry="6.9327955"
-         inkscape:export-filename="vertical_layout.png"
-         inkscape:export-xdpi="96"
-         inkscape:export-ydpi="96"
-         transform="rotate(90)" />
-      <path
-         style="fill:#1a1a1a;fill-opacity:0;stroke:#000000;stroke-width:1.03487;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-         d="m 66.141901,134.45582 v 33.02186"
-         id="path2-7" />
-    </g>
-    <g
        id="g1"
-       transform="matrix(1.2891767,0,0,1.2961379,-34.15477,-34.150019)">
+       transform="matrix(1.2891767,0,0,1.2961379,-23.042263,-35.939517)"
+       inkscape:export-filename="../src/dtsync/resources/icons/layout_h_overlay.png"
+       inkscape:export-xdpi="120"
+       inkscape:export-ydpi="120">
       <g
          id="g3">
         <rect
-           style="fill:#1a1a1a;fill-opacity:0;stroke:#000000;stroke-width:3.09441;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+           style="fill:#1a1a1a;fill-opacity:0;stroke:#000000;stroke-width:3.49324;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
            id="rect1-0"
-           width="25.282917"
-           height="14.852202"
-           x="131.72269"
-           y="69.091179"
-           ry="3.1267805"
+           width="32.482773"
+           height="14.73218"
+           x="128.12277"
+           y="69.290024"
+           ry="3.1015127"
            inkscape:export-filename="vertical_layout.png"
            inkscape:export-xdpi="96"
            inkscape:export-ydpi="96" />
         <path
-           style="fill:#1a1a1a;fill-opacity:0;stroke:#000000;stroke-width:1.54720609;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+           style="fill:#1a1a1a;fill-opacity:0;stroke:#000000;stroke-width:1.54721;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
            d="m 118.11036,93.697485 h 52.50759"
            id="path2-2"
            sodipodi:nodetypes="cc" />
         <rect
-           style="fill:#1a1a1a;fill-opacity:0;stroke:#000000;stroke-width:3.09441;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+           style="fill:#1a1a1a;fill-opacity:0;stroke:#000000;stroke-width:3.49324;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
            id="rect1-0-1"
-           width="25.282917"
-           height="14.852202"
-           x="131.72269"
-           y="103.45159"
-           ry="3.1267805"
+           width="32.482773"
+           height="14.73218"
+           x="128.12277"
+           y="103.37276"
+           ry="3.1015127"
            inkscape:export-filename="vertical_layout.png"
            inkscape:export-xdpi="96"
            inkscape:export-ydpi="96" />
       </g>
     </g>
     <g
-       id="g1-7"
-       transform="matrix(0,1.2891767,-1.2961379,0,272.58446,-0.67514968)">
+       id="g1-3"
+       transform="matrix(0,1.2891767,-1.2961379,0,272.17992,-3.5416817)"
+       inkscape:export-filename="../src/dtsync/resources/icons/layout_v_overlay.png"
+       inkscape:export-xdpi="120"
+       inkscape:export-ydpi="120">
       <g
-         id="g3-3">
+         id="g3-2">
         <rect
-           style="fill:#1a1a1a;fill-opacity:0;stroke:#000000;stroke-width:3.09441;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-           id="rect1-0-4"
-           width="25.282917"
-           height="14.852202"
-           x="131.72269"
-           y="69.091179"
-           ry="3.1267805"
+           style="fill:#1a1a1a;fill-opacity:0;stroke:#000000;stroke-width:3.49324;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+           id="rect1-0-7"
+           width="32.482773"
+           height="14.73218"
+           x="128.12277"
+           y="69.290024"
+           ry="3.1015127"
            inkscape:export-filename="vertical_layout.png"
            inkscape:export-xdpi="96"
            inkscape:export-ydpi="96" />
@@ -133,16 +103,87 @@
            id="path2-2-3"
            sodipodi:nodetypes="cc" />
         <rect
-           style="fill:#1a1a1a;fill-opacity:0;stroke:#000000;stroke-width:3.09441;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-           id="rect1-0-1-0"
-           width="25.282917"
-           height="14.852202"
-           x="131.72269"
-           y="103.45159"
-           ry="3.1267805"
+           style="fill:#1a1a1a;fill-opacity:0;stroke:#000000;stroke-width:3.49324;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+           id="rect1-0-1-9"
+           width="32.482773"
+           height="14.73218"
+           x="128.12277"
+           y="103.37276"
+           ry="3.1015127"
            inkscape:export-filename="vertical_layout.png"
            inkscape:export-xdpi="96"
            inkscape:export-ydpi="96" />
+      </g>
+    </g>
+    <g
+       id="g7"
+       inkscape:export-filename="../src/dtsync/resources/icons/layout_h_comparison.png"
+       inkscape:export-xdpi="120"
+       inkscape:export-ydpi="120">
+      <g
+         id="g1-6"
+         transform="matrix(1.2891767,0,0,1.2961379,-117.56837,-35.963291)"
+         inkscape:export-filename="../src/dtsync/resources/icons/layout_h_overlay.png"
+         inkscape:export-xdpi="120"
+         inkscape:export-ydpi="120">
+        <g
+           id="g3-8">
+          <g
+             id="g6">
+            <rect
+               style="fill:#1a1a1a;fill-opacity:0;stroke:#000000;stroke-width:3.58084;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+               id="rect1-0-5"
+               width="29.940397"
+               height="48.710464"
+               x="126.29112"
+               y="69.005432"
+               ry="10.254837"
+               inkscape:export-filename="vertical_layout.png"
+               inkscape:export-xdpi="96"
+               inkscape:export-ydpi="96" />
+            <path
+               style="fill:#1a1a1a;fill-opacity:0;stroke:#000000;stroke-width:1.54721;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+               d="m 115.0078,93.697809 h 52.50759"
+               id="path2-2-4"
+               sodipodi:nodetypes="cc" />
+          </g>
+        </g>
+      </g>
+    </g>
+    <g
+       id="g7-9"
+       transform="rotate(-90,110.85865,134.57054)"
+       inkscape:export-filename="../src/dtsync/resources/icons/layout_v_comparison.png"
+       inkscape:export-xdpi="120"
+       inkscape:export-ydpi="120">
+      <g
+         id="g1-6-1"
+         transform="matrix(1.2891767,0,0,1.2961379,-117.56837,-35.963291)"
+         inkscape:export-filename="../src/dtsync/resources/icons/layout_h_overlay.png"
+         inkscape:export-xdpi="120"
+         inkscape:export-ydpi="120">
+        <g
+           id="g3-8-5">
+          <g
+             id="g6-9">
+            <rect
+               style="fill:#1a1a1a;fill-opacity:0;stroke:#000000;stroke-width:3.58084;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+               id="rect1-0-5-8"
+               width="29.940397"
+               height="48.710464"
+               x="126.29112"
+               y="69.005432"
+               ry="10.254837"
+               inkscape:export-filename="vertical_layout.png"
+               inkscape:export-xdpi="96"
+               inkscape:export-ydpi="96" />
+            <path
+               style="fill:#1a1a1a;fill-opacity:0;stroke:#000000;stroke-width:1.54721;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+               d="m 115.0078,93.697809 h 52.50759"
+               id="path2-2-4-3"
+               sodipodi:nodetypes="cc" />
+          </g>
+        </g>
       </g>
     </g>
   </g>

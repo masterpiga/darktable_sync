@@ -416,11 +416,35 @@ class PreviewManager(QWidget):
         self.preview_max_dimension = new_dimension
 
 
-    def get_orientation_button_icon(self):
-        pass
+    def set_preview_layout_toggle_icon(self):
+        if self.comparison_mode:
+            if self.vertical_layout:
+                icon = QIcon(icons.LAYOUT_V_COMPARISON_ICON)
+            else:
+                icon = QIcon(icons.LAYOUT_H_COMPARISON_ICON)
+        else:
+            if self.vertical_layout:
+                icon = QIcon(icons.LAYOUT_V_SXS_ICON)
+            else:
+                icon = QIcon(icons.LAYOUT_H_SXS_ICON)
+        self.preview_layout_toggle.setIcon(icon)
 
-    def get_comparison_mode_button_icon(self):
-        pass
+    def set_comparison_mode_toggle_icon(self):
+        if self.comparison_mode:
+            if self.vertical_layout:
+                icon = QIcon(icons.LAYOUT_H_SXS_ICON)
+            else:
+                icon = QIcon(icons.LAYOUT_V_SXS_ICON)
+        else:
+            if self.vertical_layout:
+                icon = QIcon(icons.LAYOUT_H_COMPARISON_ICON)
+            else:
+                icon = QIcon(icons.LAYOUT_V_COMPARISON_ICON)
+        self.comparison_mode_toggle.setIcon(icon)
+
+    def update_toggle_icons(self):
+        self.set_preview_layout_toggle_icon()
+        self.set_comparison_mode_toggle_icon()
 
     
     def setup_ui(self):
@@ -437,7 +461,7 @@ class PreviewManager(QWidget):
         
         # Toolbar: Zoom slider + orientation switch + compare button
         toolbar_layout = QHBoxLayout()
-        toolbar_layout.setSpacing(toolbar_spacing)  # Reduce spacing between toolbar elements
+        toolbar_layout.setSpacing(0)  # Reduce spacing between toolbar elements
         
         # Compare in darktable button
         self.compare_button = QPushButton("Open in darktable")
@@ -463,12 +487,12 @@ class PreviewManager(QWidget):
         zoom_label.setPixmap(QIcon(icons.ZOOM_ICON).pixmap(16, 16))
         zoom_label.setToolTip("Zoom in/out of previews")
         toolbar_layout.addWidget(zoom_label)
-        toolbar_layout.addSpacing(-1 * toolbar_spacing)
         toolbar_layout.addWidget(self.zoom_slider)
+        toolbar_layout.addSpacing(toolbar_spacing)
         
         # Orientation switch button
         self.preview_layout_toggle = QPushButton()
-        self.preview_layout_toggle.setIcon(QIcon(icons.VERTICAL_LAYOUT_ICON))
+        self.set_preview_layout_toggle_icon()
         self.preview_layout_toggle.setFixedWidth(32)
         self.preview_layout_toggle.setToolTip("Switch between vertical and horizontal layout")
         self.preview_layout_toggle.clicked.connect(self.toggle_preview_orientation)
@@ -476,9 +500,9 @@ class PreviewManager(QWidget):
         
         # Comparison mode toggle button
         self.comparison_mode_toggle = QPushButton()
-        self.comparison_mode_toggle.setText("📊")  # Using emoji as icon
+        self.set_comparison_mode_toggle_icon()
         self.comparison_mode_toggle.setFixedWidth(32)
-        self.comparison_mode_toggle.setToolTip("Toggle comparison slider mode")
+        self.comparison_mode_toggle.setToolTip("Switch betwoon comparison slider and side by side comparison")
         self.comparison_mode_toggle.clicked.connect(self.toggle_comparison_mode)
         toolbar_layout.addWidget(self.comparison_mode_toggle)
         
@@ -558,8 +582,6 @@ class PreviewManager(QWidget):
             # Switch to comparison slider mode
             self.previews_splitter.hide()
             self.comparison_slider.show()
-            # Keep orientation toggle enabled for comparison slider
-            self.comparison_mode_toggle.setToolTip("Switch to side-by-side mode")
             
             # Transfer current images to comparison slider
             if hasattr(self.archive_preview.image_label, 'original_pixmap'):
@@ -578,7 +600,8 @@ class PreviewManager(QWidget):
             # Switch to side-by-side mode
             self.comparison_slider.hide()
             self.previews_splitter.show()
-            self.comparison_mode_toggle.setToolTip("Switch to comparison slider mode")
+        
+        self.update_toggle_icons()
         
         # Notify parent if callback is set
         if hasattr(self, '_focus_callback') and self._focus_callback:
@@ -682,11 +705,6 @@ class PreviewManager(QWidget):
             # In comparison slider mode, toggle the divider orientation
             self.comparison_slider.set_vertical_divider(not self.vertical_layout)
             
-            # Update the button icon to match the orientation
-            if self.vertical_layout:
-                self.preview_layout_toggle.setIcon(QIcon(icons.VERTICAL_LAYOUT_ICON))
-            else:
-                self.preview_layout_toggle.setIcon(QIcon(icons.HORIZONTAL_LAYOUT_ICON))
         else:
             # In side-by-side mode, toggle the splitter orientation
             session_layout = self.session_preview.preview_layout
@@ -701,12 +719,11 @@ class PreviewManager(QWidget):
             
             if self.vertical_layout:
                 self.previews_splitter.setOrientation(Qt.Orientation.Vertical)
-                self.preview_layout_toggle.setIcon(QIcon(icons.VERTICAL_LAYOUT_ICON))
                 session_layout.addWidget(session_scroll)
             else:
                 self.previews_splitter.setOrientation(Qt.Orientation.Horizontal)
-                self.preview_layout_toggle.setIcon(QIcon(icons.HORIZONTAL_LAYOUT_ICON))
                 session_layout.addWidget(session_scroll)
+        self.update_toggle_icons()
         
         # Notify parent if callback is set
         if hasattr(self, '_focus_callback') and self._focus_callback:
