@@ -23,6 +23,7 @@ import shutil
 import time
 from pathlib import Path
 import darktable_detection
+import ui_actions
 
 
 @dataclasses.dataclass
@@ -54,24 +55,7 @@ class AppLogic:
         self.enable_backups = True  # Enable backups by default
         
         # --- Default keyboard shortcuts ---
-        self.default_shortcuts = {
-            "navigate_up": "Up",
-            "navigate_down": "Down", 
-            "navigate_prev_undecided": "Left",
-            "navigate_next_undecided": "Right",
-            "action_keep_archive": "1",
-            "action_keep_both": "2", 
-            "action_keep_session": "3",
-            "action_reset": "`",
-            "zoom_in": "E",
-            "zoom_out": "Q",
-            "toggle_orientation": "R",
-            "toggle_comparison_mode": "T",
-            "scroll_up": "W",
-            "scroll_left": "A", 
-            "scroll_down": "S",
-            "scroll_right": "D"
-        }
+        self.default_shortcuts = {x: y.default_shortcut for x, y in ui_actions.ALL_ACTIONS.items()}
         self.custom_shortcuts = self.default_shortcuts.copy()
         
         # --- Settings Path ---

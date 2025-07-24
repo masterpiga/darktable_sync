@@ -51,6 +51,7 @@ from preview_cache_manager import PreviewCacheManager
 import ui_components
 import path_utils
 import xmp_diff
+import ui_actions
 from settings_dialog import SettingsDialog
 
 
@@ -197,14 +198,6 @@ class DarktableSyncApp(QMainWindow):
         xmp_diffs_layout.addLayout(filter_layout)
         left_layout.addWidget(self.xmp_diffs_group)
         
-        # Action names for labels (still needed for display)
-        self.action_names = [
-            "No action",
-            "Keep archive",
-            "Keep session",
-            "Keep both",
-        ]
-        
         # --- Selected XMP group (replaces combobox) ---
         self.action_group = QGroupBox("Selected XMP")
         self.action_group.setEnabled(False)  # Initially disabled until a file is selected
@@ -234,13 +227,13 @@ class DarktableSyncApp(QMainWindow):
 
         self.action_buttons = []
         # Label to (row, column, rowspan, colspan)
-        action_labels = [
-            (0, "No action", (0, 0, 1, 2)),
-            (1, "Keep archive", (1, 0, 1, 1)),
-            (2, "Keep session", (1, 1, 1, 1)),
-            (3, "Keep both", (2, 0, 1, 2)),
+        self.action_button_labels = [
+            (0, ui_actions.ACTION_RESET.label, (0, 0, 1, 2)),
+            (1, ui_actions.ACTION_KEEP_ARCHIVE.label, (1, 0, 1, 1)),
+            (2, ui_actions.ACTION_KEEP_SESSION.label, (1, 1, 1, 1)),
+            (3, ui_actions.ACTION_KEEP_BOTH.label, (2, 0, 1, 2)),
         ]
-        for i, label, coords in action_labels:
+        for i, label, coords in self.action_button_labels:
             btn = QPushButton(label)
             btn.setEnabled(False)
             btn.clicked.connect(lambda _, idx=i: self.on_action_button_clicked(idx))
@@ -373,26 +366,26 @@ class DarktableSyncApp(QMainWindow):
                 self.active_shortcuts.append(shortcut)
 
         # Navigation
-        add_shortcut("navigate_up", self.navigation.navigate_up)
-        add_shortcut("navigate_down", self.navigation.navigate_down)
-        add_shortcut("navigate_prev_undecided", self.navigation.navigate_previous_undecided)
-        add_shortcut("navigate_next_undecided", self.navigation.navigate_next_undecided)
+        add_shortcut(ui_actions.NAVIGATE_UP.action_id, self.navigation.navigate_up)
+        add_shortcut(ui_actions.NAVIGATE_DOWN.action_id, self.navigation.navigate_down)
+        add_shortcut(ui_actions.NAVIGATE_PREV_UNDECIDED.action_id, self.navigation.navigate_previous_undecided)
+        add_shortcut(ui_actions.NAVIGATE_NEXT_UNDECIDED.action_id, self.navigation.navigate_next_undecided)
 
         # Actions
-        add_shortcut("action_reset", lambda: self.trigger_action_by_id(0))
-        add_shortcut("action_keep_archive", lambda: self.trigger_action_by_id(1))
-        add_shortcut("action_keep_session", lambda: self.trigger_action_by_id(2))
-        add_shortcut("action_keep_both", lambda: self.trigger_action_by_id(3))
+        add_shortcut(ui_actions.ACTION_RESET.action_id, lambda: self.trigger_action_by_id(0))
+        add_shortcut(ui_actions.ACTION_KEEP_ARCHIVE.action_id, lambda: self.trigger_action_by_id(1))
+        add_shortcut(ui_actions.ACTION_KEEP_SESSION.action_id, lambda: self.trigger_action_by_id(2))
+        add_shortcut(ui_actions.ACTION_KEEP_BOTH.action_id, lambda: self.trigger_action_by_id(3))
 
         # Previews
-        add_shortcut("zoom_in", self.preview_manager.zoom_in_preview)
-        add_shortcut("zoom_out", self.preview_manager.zoom_out_preview)
-        add_shortcut("toggle_orientation", self.preview_manager.toggle_preview_orientation)
-        add_shortcut("toggle_comparison_mode", self.preview_manager.toggle_comparison_mode)
-        add_shortcut("scroll_up", self.preview_manager.scroll_preview_up)
-        add_shortcut("scroll_down", self.preview_manager.scroll_preview_down)
-        add_shortcut("scroll_left", self.preview_manager.scroll_preview_left)
-        add_shortcut("scroll_right", self.preview_manager.scroll_preview_right)
+        add_shortcut(ui_actions.ZOOM_IN.action_id, self.preview_manager.zoom_in_preview)
+        add_shortcut(ui_actions.ZOOM_OUT.action_id, self.preview_manager.zoom_out_preview)
+        add_shortcut(ui_actions.TOGGLE_ORIENTATION.action_id, self.preview_manager.toggle_preview_orientation)
+        add_shortcut(ui_actions.TOGGLE_COMPARISON_MODE.action_id, self.preview_manager.toggle_comparison_mode)
+        add_shortcut(ui_actions.SCROLL_UP.action_id, self.preview_manager.scroll_preview_up)
+        add_shortcut(ui_actions.SCROLL_DOWN.action_id, self.preview_manager.scroll_preview_down)
+        add_shortcut(ui_actions.SCROLL_LEFT.action_id, self.preview_manager.scroll_preview_left)
+        add_shortcut(ui_actions.SCROLL_RIGHT.action_id, self.preview_manager.scroll_preview_right)
 
     def update_action_filter_counts(self):
         """Update the action filter checkbox labels with current counts."""
@@ -602,7 +595,7 @@ class DarktableSyncApp(QMainWindow):
         action_id = self.actions.get(relative_path, 0)
         label = filename
         if action_id != 0:
-            label += f" [" + self.action_names[action_id] + "]"
+            label += f" [" + self.action_button_labels[action_id][1] + "]"
 
         file_item = QStandardItem(label)
         file_item.setEditable(False)
@@ -731,7 +724,7 @@ class DarktableSyncApp(QMainWindow):
             if current_item:
                 label = os.path.basename(rel_path)
                 if action_id != 0:
-                    label += f" [{self.action_names[action_id]}]"
+                    label += f" [{self.action_button_labels[action_id][1]}]"
                 current_item.setText(label)
             # Update action filter counts
             self.update_action_filter_counts()

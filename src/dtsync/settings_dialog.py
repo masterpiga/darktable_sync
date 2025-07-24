@@ -34,6 +34,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QKeySequence
 from PySide6.QtCore import Qt
 import darktable_detection
+import ui_actions
 
 
 class SettingsDialog(QDialog):
@@ -158,24 +159,7 @@ class SettingsDialog(QDialog):
         
         self.shortcut_editors = {}
         
-        shortcut_labels = {
-            "navigate_up": "Navigate up:",
-            "navigate_down": "Navigate down:",
-            "navigate_prev_undecided": "Previous undecided:",
-            "navigate_next_undecided": "Next undecided:",
-            "action_keep_session": "Keep session:",
-            "action_keep_both": "Keep both:",
-            "action_keep_archive": "Keep archive:",
-            "action_reset": "Reset to `no action`:",
-            "toggle_orientation": "Preview - toggle orientation:",
-            "toggle_comparison_mode": "Preview - toggle comparison mode:",
-            "zoom_in": "Preview - zoom in:",
-            "zoom_out": "Preview - zoom out:",
-            "scroll_up": "Preview - scroll up:",
-            "scroll_left": "Preview - scroll left:",
-            "scroll_down": "Preview - scroll down:",
-            "scroll_right": "Preview - scroll right:"
-        }
+        shortcut_labels = {x: y.label for x, y in ui_actions.ALL_ACTIONS.items()}
         
         for key, label in shortcut_labels.items():
             editor = QKeySequenceEdit()
