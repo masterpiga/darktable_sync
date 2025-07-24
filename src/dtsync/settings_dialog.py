@@ -153,27 +153,28 @@ class SettingsDialog(QDialog):
 
         # --- Keyboard Shortcuts Section ---
         shortcuts_group = QGroupBox("Keyboard Shortcuts")
-        shortcuts_group.setFixedWidth(300)
+        shortcuts_group.setFixedWidth(500)
         shortcuts_form = QFormLayout(shortcuts_group)
         
         self.shortcut_editors = {}
         
         shortcut_labels = {
-            "navigate_up": "Navigate Up:",
-            "navigate_down": "Navigate Down:",
-            "navigate_prev_undecided": "Previous Undecided:",
-            "navigate_next_undecided": "Next Undecided:",
+            "navigate_up": "Navigate up:",
+            "navigate_down": "Navigate down:",
+            "navigate_prev_undecided": "Previous undecided:",
+            "navigate_next_undecided": "Next undecided:",
             "action_keep_session": "Keep session:",
-            "action_keep_both": "Keep Both:",
+            "action_keep_both": "Keep both:",
             "action_keep_archive": "Keep archive:",
-            "action_reset": "Reset to No Action:",
-            "zoom_in": "Zoom In:",
-            "zoom_out": "Zoom Out:",
-            "toggle_orientation": "Toggle Orientation:",
-            "scroll_up": "Scroll Up:",
-            "scroll_left": "Scroll Left:",
-            "scroll_down": "Scroll Down:",
-            "scroll_right": "Scroll Right:"
+            "action_reset": "Reset to `no action`:",
+            "toggle_orientation": "Preview - toggle orientation:",
+            "toggle_comparison_mode": "Preview - toggle comparison mode:",
+            "zoom_in": "Preview - zoom in:",
+            "zoom_out": "Preview - zoom out:",
+            "scroll_up": "Preview - scroll up:",
+            "scroll_left": "Preview - scroll left:",
+            "scroll_down": "Preview - scroll down:",
+            "scroll_right": "Preview - scroll right:"
         }
         
         for key, label in shortcut_labels.items():
@@ -183,7 +184,7 @@ class SettingsDialog(QDialog):
             self.shortcut_editors[key] = editor
             shortcuts_form.addRow(label, editor)
         
-        reset_shortcuts_btn = QPushButton("Reset to Defaults")
+        reset_shortcuts_btn = QPushButton("Reset defaults")
         reset_shortcuts_btn.clicked.connect(self.reset_shortcuts_to_defaults)
         shortcuts_form.addRow("", reset_shortcuts_btn)
         

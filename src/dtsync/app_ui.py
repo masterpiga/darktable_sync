@@ -393,6 +393,7 @@ class DarktableSyncApp(QMainWindow):
         add_shortcut("zoom_in", self.preview_manager.zoom_in_preview)
         add_shortcut("zoom_out", self.preview_manager.zoom_out_preview)
         add_shortcut("toggle_orientation", self.preview_manager.toggle_preview_orientation)
+        add_shortcut("toggle_comparison_mode", self.preview_manager.toggle_comparison_mode)
         add_shortcut("scroll_up", self.preview_manager.scroll_preview_up)
         add_shortcut("scroll_down", self.preview_manager.scroll_preview_down)
         add_shortcut("scroll_left", self.preview_manager.scroll_preview_left)

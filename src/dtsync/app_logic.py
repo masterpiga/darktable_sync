@@ -66,6 +66,7 @@ class AppLogic:
             "zoom_in": "E",
             "zoom_out": "Q",
             "toggle_orientation": "R",
+            "toggle_comparison_mode": "T",
             "scroll_up": "W",
             "scroll_left": "A", 
             "scroll_down": "S",
