@@ -233,24 +233,19 @@ class DarktableSyncApp(QMainWindow):
         selected_action_layout = QGridLayout(selected_action_group)
 
         self.action_buttons = []
+        # Label to (row, column, rowspan, colspan)
         action_labels = [
-            "Keep archive",
-            "Keep session",
-            "Keep both",
+            (0, "No action", (0, 0, 1, 2)),
+            (1, "Keep archive", (1, 0, 1, 1)),
+            (2, "Keep session", (1, 1, 1, 1)),
+            (3, "Keep both", (2, 0, 1, 2)),
         ]
-        # Updated action_button_to_action_id mapping to match the new order
-        self.action_button_to_action_id = [1, 2, 3]
-        for i, label in enumerate(action_labels):
+        for i, label, coords in action_labels:
             btn = QPushButton(label)
             btn.setEnabled(False)
             btn.clicked.connect(lambda _, idx=i: self.on_action_button_clicked(idx))
             self.action_buttons.append(btn)
-            if i < 2:
-                # Place the first two buttons in the next row, side by side
-                selected_action_layout.addWidget(btn, 0, i)
-            else:
-                # Place the 'Keep both' button in the row after, spanning both columns
-                selected_action_layout.addWidget(btn, 1, 0, 1, 2)
+            selected_action_layout.addWidget(btn, *coords)
         
         action_grid.addWidget(selected_action_group, 2, 0, 1, 2)
 
@@ -385,8 +380,8 @@ class DarktableSyncApp(QMainWindow):
 
         # Actions
         add_shortcut("action_reset", lambda: self.trigger_action_by_id(0))
-        add_shortcut("action_keep_ref", lambda: self.trigger_action_by_id(1))
-        add_shortcut("action_keep_work", lambda: self.trigger_action_by_id(2))
+        add_shortcut("action_keep_archive", lambda: self.trigger_action_by_id(1))
+        add_shortcut("action_keep_session", lambda: self.trigger_action_by_id(2))
         add_shortcut("action_keep_both", lambda: self.trigger_action_by_id(3))
 
         # Previews
@@ -627,8 +622,7 @@ class DarktableSyncApp(QMainWindow):
             # Enable action buttons and highlight selected
             for i, btn in enumerate(self.action_buttons):
                 btn.setEnabled(True)
-                action_id = self.action_button_to_action_id[i]
-                btn.setDefault(self.actions.get(relative_path, 0) == action_id)
+                btn.setDefault(self.actions.get(relative_path, 0) == i)
             self.display_diff_details(relative_path)
             # Enable action group, label, and preview group
             self.action_group.setEnabled(True)
@@ -723,16 +717,15 @@ class DarktableSyncApp(QMainWindow):
         if dialog.exec() == QDialog.DialogCode.Accepted and not dry_run:
             self.start_scan()
 
-    def on_action_button_clicked(self, btn_idx):
+    def on_action_button_clicked(self, action_id):
         """Handle action button click by updating the action but maintaining current selection."""
         rel_path = self.get_current_selected_path()
         if rel_path and rel_path in self.diff_files:
-            action_id = self.action_button_to_action_id[btn_idx]
             self.actions[rel_path] = action_id
             self.preview_manager.update_preview_label_styles(action_id)
             # Update button highlighting
             for i, btn in enumerate(self.action_buttons):
-                btn.setDefault(self.action_button_to_action_id[i] == action_id)
+                btn.setDefault(i == action_id)
             # Update the item's label in the tree view without changing selection
             current_item = self.file_tree_model.itemFromIndex(self.file_tree_view.currentIndex())
             if current_item:
