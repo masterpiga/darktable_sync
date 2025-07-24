@@ -366,10 +366,10 @@ class DarktableSyncApp(QMainWindow):
                 self.active_shortcuts.append(shortcut)
 
         # Navigation
-        add_shortcut(ui_actions.NAVIGATE_UP.action_id, self.navigation.navigate_up)
-        add_shortcut(ui_actions.NAVIGATE_DOWN.action_id, self.navigation.navigate_down)
-        add_shortcut(ui_actions.NAVIGATE_PREV_UNDECIDED.action_id, self.navigation.navigate_previous_undecided)
-        add_shortcut(ui_actions.NAVIGATE_NEXT_UNDECIDED.action_id, self.navigation.navigate_next_undecided)
+        add_shortcut(ui_actions.PREV_XMP.action_id, self.navigation.navigate_up)
+        add_shortcut(ui_actions.NEXT_XMP.action_id, self.navigation.navigate_down)
+        add_shortcut(ui_actions.PREV_UNDECIDED_XMP.action_id, self.navigation.navigate_previous_undecided)
+        add_shortcut(ui_actions.NEXT_UNDECIDED_XMP.action_id, self.navigation.navigate_next_undecided)
 
         # Actions
         add_shortcut(ui_actions.ACTION_RESET.action_id, lambda: self.trigger_action_by_id(0))

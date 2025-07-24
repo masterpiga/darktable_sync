@@ -25,24 +25,24 @@ class UIAction:
         self.default_shortcut = default_shortcut
         ALL_ACTIONS[self.action_id] = self
 
-NAVIGATE_UP = UIAction(
-    "navigate_up",
-    "Navigate up",
+PREV_XMP = UIAction(
+    "prev_xmp",
+    "Previous XMP",
     "Up"
 )
-NAVIGATE_DOWN = UIAction(
-    "navigate_down",
-    "Navigate down",
+NEXT_XMP = UIAction(
+    "next_xmp",
+    "Next XMP",
     "Down"
 )
-NAVIGATE_PREV_UNDECIDED = UIAction(
-    "navigate_prev_undecided",
-    "Go to previous undecided",
+PREV_UNDECIDED_XMP = UIAction(
+    "prev_undecided_xmp",
+    "Previous undecided XMP",
     "Left"
 )
-NAVIGATE_NEXT_UNDECIDED = UIAction(
-    "navigate_next_undecided",
-    "Go to next undecided",
+NEXT_UNDECIDED_XMP = UIAction(
+    "next_undecided_xmp",
+    "Next undecided XMP",
     "Right"
 )
 ACTION_KEEP_ARCHIVE = UIAction(
