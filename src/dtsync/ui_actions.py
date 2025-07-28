@@ -45,25 +45,25 @@ NEXT_UNDECIDED_XMP = UIAction(
     "Next undecided XMP",
     "Right"
 )
-ACTION_KEEP_ARCHIVE = UIAction(
-    "action_keep_archive",
-    "Keep archive",
-    "1"
+ACTION_RESET = UIAction(
+    "action_reset",
+    "No action",
+    "`"
 )
 ACTION_KEEP_BOTH = UIAction(
     "action_keep_both",
     "Keep both",
+    "1"
+)
+ACTION_KEEP_ARCHIVE = UIAction(
+    "action_keep_archive",
+    "Keep archive",
     "2"
 )
 ACTION_KEEP_SESSION = UIAction(
     "action_keep_session",
     "Keep session",
     "3"
-)
-ACTION_RESET = UIAction(
-    "action_reset",
-    "No action",
-    "`"
 )
 ZOOM_IN = UIAction(
     "zoom_in",

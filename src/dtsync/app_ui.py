@@ -228,15 +228,16 @@ class DarktableSyncApp(QMainWindow):
         self.action_buttons = []
         # Label to (row, column, rowspan, colspan)
         self.action_button_labels = [
-            (0, ui_actions.ACTION_RESET.label, (0, 0, 1, 2)),
+            (0, ui_actions.ACTION_RESET.label, (0, 0, 1, 1)),
             (1, ui_actions.ACTION_KEEP_ARCHIVE.label, (1, 0, 1, 1)),
             (2, ui_actions.ACTION_KEEP_SESSION.label, (1, 1, 1, 1)),
-            (3, ui_actions.ACTION_KEEP_BOTH.label, (2, 0, 1, 2)),
+            (3, ui_actions.ACTION_KEEP_BOTH.label, (0, 1, 1, 1)),
         ]
-        for i, label, coords in self.action_button_labels:
-            btn = QPushButton(label)
+        for i, label_text, coords in self.action_button_labels:
+            btn = QPushButton(label_text)
             btn.setEnabled(False)
             btn.clicked.connect(lambda _, idx=i: self.on_action_button_clicked(idx))
+            btn.adjustSize()
             self.action_buttons.append(btn)
             selected_action_layout.addWidget(btn, *coords)
         
