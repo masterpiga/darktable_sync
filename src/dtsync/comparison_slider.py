@@ -254,7 +254,37 @@ class ComparisonSlider(QWidget):
                         else event.globalPos()
                     )
                     QApplication.setOverrideCursor(Qt.CursorShape.OpenHandCursor)
+
+    def increase_session_area(self, amount):
+        if self.vertical_divider:
+            current_value = self.image_widget.width() * self.divider_position
+        else:
+            current_value = self.image_widget.height() * self.divider_position
+        if amount > 0:
+            if self.vertical_divider:
+                new_value = max(2.0, current_value - amount)
+                self.update_divider_position(new_value, 0)
+            else:
+                new_value = max(2.0, current_value - amount)
+                self.update_divider_position(0, new_value)
+        else:
+            if self.vertical_divider:
+                new_value = min(self.image_widget.width() - 2, current_value - amount)
+                self.update_divider_position(new_value, 0)
+            else:
+                new_value = min(self.image_widget.height() - 2, current_value - amount)
+                self.update_divider_position(0, new_value)
     
+    def center_preview_separator(self):
+        """Center the preview separator based on the current image size."""
+        if self.vertical_divider:
+            center_x = self.image_widget.width() / 2
+            self.update_divider_position(center_x, 0)
+        else:
+            center_y = self.image_widget.height() / 2
+            self.update_divider_position(0, center_y)
+
+
     def mouseMoveEvent(self, event):
         """Handle mouse move for dragging the divider or panning."""
         if self.dragging:

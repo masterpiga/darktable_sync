@@ -446,6 +446,27 @@ class PreviewManager(QWidget):
         self.set_preview_layout_toggle_icon()
         self.set_comparison_mode_toggle_icon()
 
+
+    def increase_session_area(self, amount:int = 10):
+        if self.comparison_mode:
+            self.comparison_slider.increase_session_area(amount)
+        else:
+            if self.vertical_layout:
+                current_pos = self.previews_splitter.handle(1).pos().y()
+            else:
+                current_pos = self.previews_splitter.handle(1).pos().x()
+            self.previews_splitter.handle(1).moveSplitter(max(0, current_pos - amount))
+
+    def center_preview_separator(self):
+        if self.comparison_mode:
+            self.comparison_slider.center_preview_separator()
+        else:
+            if self.vertical_layout:
+                size = self.previews_splitter.height()
+            else:
+                size = self.previews_splitter.width()
+            self.previews_splitter.handle(1).moveSplitter(size / 2)
+
     
     def setup_ui(self):
         """Initialize the preview UI components."""
@@ -523,28 +544,6 @@ class PreviewManager(QWidget):
         self.comparison_slider = comparison_slider.ComparisonSlider("Archive copy", "Session copy")
         
         # Add both widgets to the preview group layout
-        preview_group_layout.addWidget(self.previews_splitter)
-        preview_group_layout.addWidget(self.comparison_slider)
-        
-        # Initially hide the comparison slider
-        self.comparison_slider.hide()
-        
-        # Sync scrollbars for side-by-side mode
-        self.archive_preview.image_label.set_other_scroll_area(self.session_preview.scroll_area)
-        self.session_preview.image_label.set_other_scroll_area(self.archive_preview.scroll_area)
-        self.archive_preview.scroll_area.horizontalScrollBar().valueChanged.connect(
-            self.session_preview.scroll_area.horizontalScrollBar().setValue
-        )
-        self.archive_preview.scroll_area.verticalScrollBar().valueChanged.connect(
-            self.session_preview.scroll_area.verticalScrollBar().setValue
-        )
-        self.session_preview.scroll_area.horizontalScrollBar().valueChanged.connect(
-            self.archive_preview.scroll_area.horizontalScrollBar().setValue
-        )
-        self.session_preview.scroll_area.verticalScrollBar().valueChanged.connect(
-            self.archive_preview.scroll_area.verticalScrollBar().setValue
-        )
-        
         preview_group_layout.addWidget(self.previews_splitter)
         preview_group_layout.addWidget(self.comparison_slider)
         

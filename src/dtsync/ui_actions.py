@@ -105,3 +105,18 @@ SCROLL_RIGHT = UIAction(
     "Scroll right",
     "D"
 )
+INCREASE_SESSION_AREA = UIAction(
+    "increase_session_area",
+    "Increase session area",
+    "Z"
+)
+DECREASE_SESSION_AREA = UIAction(
+    "decrease_session_area",
+    "Decrease session area",
+    "C"
+)
+CENTER_PREVIEW_SEPARATOR = UIAction(
+    "center_preview_separator",
+    "Center preview separator",
+    "X"
+)

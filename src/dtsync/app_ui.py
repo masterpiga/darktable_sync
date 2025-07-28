@@ -386,6 +386,9 @@ class DarktableSyncApp(QMainWindow):
         add_shortcut(ui_actions.SCROLL_DOWN.action_id, self.preview_manager.scroll_preview_down)
         add_shortcut(ui_actions.SCROLL_LEFT.action_id, self.preview_manager.scroll_preview_left)
         add_shortcut(ui_actions.SCROLL_RIGHT.action_id, self.preview_manager.scroll_preview_right)
+        add_shortcut(ui_actions.INCREASE_SESSION_AREA.action_id, lambda : self.preview_manager.increase_session_area(10))
+        add_shortcut(ui_actions.DECREASE_SESSION_AREA.action_id, lambda : self.preview_manager.increase_session_area(-10))
+        add_shortcut(ui_actions.CENTER_PREVIEW_SEPARATOR.action_id, lambda : self.preview_manager.center_preview_separator())
 
     def update_action_filter_counts(self):
         """Update the action filter checkbox labels with current counts."""
